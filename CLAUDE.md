@@ -151,7 +151,7 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 
 ## Stack
 - **Runtime:** Bun + TypeScript
-- **PDF Processing:** pdf-parse
+- **PDF Processing:** pdf-ts
 - **Database:** Supabase (free PostgreSQL)
 - **Deploy:** Railway/Vercel
 
