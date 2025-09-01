@@ -45,3 +45,5 @@ export const CVSchema = v.object({
   experience: v.array(ExperienceSchema),
   education: v.array(EducationSchema),
 });
+
+export type CV = v.InferInput<typeof CVSchema>;

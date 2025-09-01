@@ -1,19 +1,30 @@
 import "./index.css";
 import { useState, useRef } from "preact/hooks";
-import * as v from "valibot";
-import { generateText } from "ai";
-import { createDeepSeek } from "@ai-sdk/deepseek";
+import type { CV } from "./schemas/cv";
 import { CVSchema } from "./schemas/cv";
+import * as v from "valibot";
 
-const RawDataSchema = v.pipe(v.string(), v.minLength(1));
-type RawResume = v.InferOutput<typeof RawDataSchema>;
 
 export function App() {
   const [activeTab, setActiveTab] = useState<"upload" | "data">("upload");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>("");
+  const [cvData, setCvData] = useState<CV | null>(() => {
+    try {
+      const stored = localStorage.getItem("parsedCv");
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      return v.parse(CVSchema, parsed);
+    } catch {
+      return null;
+    }
+  });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const formatCvAsJson = (cv: CV): string => {
+    return JSON.stringify(cv, null, 2);
+  };
 
   const handleFileUpload = async (file: File) => {
     if (!file.type.includes("pdf")) {
@@ -34,8 +45,11 @@ export function App() {
 
       if (response.ok) {
         const result = await response.json();
-        const rawResume = v.parse(RawDataSchema, result.rawText);
-        await formatResumeData(rawResume);
+
+        localStorage.setItem("parsedCv", JSON.stringify(result.data));
+        setCvData(result.data);
+        console.log("CV data saved to localStorage:", result.data);
+
         setUploadStatus("PDF processed successfully!");
         setActiveTab("data");
       } else {
@@ -50,194 +64,6 @@ export function App() {
     }
   };
 
-  const formatResumeData = async (data: RawResume) => {
-    const deepseek = createDeepSeek({
-      apiKey: process.env.DEEPSEEK_API_KEY ?? "",
-    });
-
-    const dataLanguage = getResumeLanguage(data);
-    const cleanData = data.replace(/Page\s+\d+\s+of\s+\d+/gi, "").replace(/\n\s*\n\s*\n/g, "\n");
-
-    if (dataLanguage === "ES") {
-      const headerSection = cleanData.substring(0, cleanData.indexOf("Extracto")).trim();
-      const summarySection = cleanData
-        .substring(cleanData.indexOf("Extracto"), cleanData.indexOf("Experiencia"))
-        .trim();
-      const experienceSection = cleanData
-        .substring(cleanData.indexOf("Experiencia"), cleanData.indexOf("Educación"))
-        .trim();
-      const educationSection = cleanData
-        .substring(cleanData.indexOf("Educación"), cleanData.indexOf("Aptitudes principales"))
-        .trim();
-      const skillsSection = cleanData.substring(cleanData.indexOf("Aptitudes principales")).trim();
-
-      const contactInfo = headerSection.substring(headerSection.indexOf("Contactar")).trim();
-
-      const schemaDescription = `
-      Required JSON Schema:
-      {
-        "contact": {
-          "github": "string (GitHub profile URL)",
-          "mobile": "string (phone number)", 
-          "email": "string (valid email)",
-          "linkedin": "string (LinkedIn profile URL)"
-        },
-        "name": "string (full name)",
-        "title": "string (professional title/headline)",
-        "location": "string (current location)",
-        "summary": "string (professional summary)",
-        "skills": {
-          "mainSkills": ["array of main technical skills"],
-          "languages": [{"name": "language", "level": "proficiency level"}]
-        },
-        "experience": [{
-          "company": "string",
-          "position": "string", 
-          "startDate": "string (format: YYYY-MM or similar)",
-          "endDate": "string (format: YYYY-MM or 'Present')",
-          "duration": "string (e.g., '2 años 3 meses')",
-          "location": "string",
-          "achievements": ["array of key achievements"],
-          "technologies": ["array of technologies used (optional)"]
-        }],
-        "education": [{
-          "institution": "string",
-          "degree": "string",
-          "field": "string", 
-          "period": "string (time period)"
-        }]
-      }`;
-
-      try {
-        const { text, usage } = await generateText({
-          model: deepseek("deepseek-chat"),
-          prompt: `Extract and structure information from this Spanish LinkedIn resume into the exact JSON format specified.
-
-            RESUME SECTIONS:
-            Header/Contact: ${headerSection}
-            Contact Info: ${contactInfo}
-            Summary: ${summarySection}
-            Experience: ${experienceSection}
-            Education: ${educationSection}
-            Skills: ${skillsSection}
-
-            ${schemaDescription}
-
-            Instructions:
-            - Extract ALL information accurately from the provided sections
-            - Return ONLY valid JSON matching the schema exactly
-            - Use proper Spanish-to-English translations for field names where appropriate
-            - If a field is missing, use empty string "" or empty array [] as appropriate
-            - Ensure email format is valid
-            - Format dates consistently
-
-            JSON Response:`,
-        });
-
-        console.log("Token usage:", usage);
-
-        // Parse and validate the response
-        const parsedData = JSON.parse(text);
-        const validatedData = v.parse(CVSchema, parsedData);
-
-        // Save to localStorage
-        localStorage.setItem("parsedCv", JSON.stringify(validatedData));
-        console.log("CV data saved to localStorage:", validatedData);
-      } catch (error) {
-        console.error("AI processing error:", error);
-      }
-    } else if (dataLanguage === "EN") {
-      // Extract structured sections from English resume
-      const headerSection = cleanData.substring(0, cleanData.indexOf("Summary")).trim();
-      const summarySection = cleanData.substring(cleanData.indexOf("Summary"), cleanData.indexOf("Experience")).trim();
-      const experienceSection = cleanData
-        .substring(cleanData.indexOf("Experience"), cleanData.indexOf("Education"))
-        .trim();
-      const educationSection = cleanData.substring(cleanData.indexOf("Education"), cleanData.indexOf("Skills")).trim();
-      const skillsSection = cleanData.substring(cleanData.indexOf("Skills")).trim();
-
-      const contactInfo = headerSection.substring(headerSection.indexOf("Contact")).trim();
-
-      const deepseek = createDeepSeek({
-        apiKey: process.env.DEEPSEEK_API_KEY ?? "",
-      });
-
-      const schemaDescription = `
-      Required JSON Schema:
-      {
-        "contact": {
-          "github": "string (GitHub profile URL)",
-          "mobile": "string (phone number)", 
-          "email": "string (valid email)",
-          "linkedin": "string (LinkedIn profile URL)"
-        },
-        "name": "string (full name)",
-        "title": "string (professional title/headline)",
-        "location": "string (current location)",
-        "summary": "string (professional summary)",
-        "skills": {
-          "mainSkills": ["array of main technical skills"],
-          "languages": [{"name": "language", "level": "proficiency level"}]
-        },
-        "experience": [{
-          "company": "string",
-          "position": "string", 
-          "startDate": "string (format: YYYY-MM or similar)",
-          "endDate": "string (format: YYYY-MM or 'Present')",
-          "duration": "string (e.g., '2 years 3 months')",
-          "location": "string",
-          "achievements": ["array of key achievements"],
-          "technologies": ["array of technologies used (optional)"]
-        }],
-        "education": [{
-          "institution": "string",
-          "degree": "string",
-          "field": "string", 
-          "period": "string (time period)"
-        }]
-      }`;
-
-      try {
-        const { text, usage } = await generateText({
-          model: deepseek("deepseek-chat"),
-          prompt: `Extract and structure information from this English LinkedIn resume into the exact JSON format specified.
-
-            RESUME SECTIONS:
-            Header/Contact: ${headerSection}
-            Contact Info: ${contactInfo}
-            Summary: ${summarySection}
-            Experience: ${experienceSection}
-            Education: ${educationSection}
-            Skills: ${skillsSection}
-
-            ${schemaDescription}
-
-            Instructions:
-            - Extract ALL information accurately from the provided sections
-            - Return ONLY valid JSON matching the schema exactly
-            - If a field is missing, use empty string "" or empty array [] as appropriate
-            - Ensure email format is valid
-            - Format dates consistently
-
-            JSON Response:`,
-        });
-
-        console.log("Token usage:", usage);
-
-        // Parse and validate the response
-        const parsedData = JSON.parse(text);
-        const validatedData = v.parse(CVSchema, parsedData);
-
-        // Save to localStorage
-        localStorage.setItem("parsedCv", JSON.stringify(validatedData));
-        console.log("CV data saved to localStorage:", validatedData);
-      } catch (error) {
-        console.error("AI processing error:", error);
-      }
-    } else {
-      console.log("No language detected - cannot format data");
-    }
-  };
 
   const handleFileInput = (e: Event) => {
     const target = e.target as HTMLInputElement;
@@ -321,14 +147,15 @@ export function App() {
           <div className="bg-gray-800 rounded-lg p-8">
             <h2 className="text-xl font-semibold mb-6">Extracted Data</h2>
 
-            {isLoading ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-                <p className="text-gray-300">Loading data...</p>
+            {cvData ? (
+              <div className="bg-gray-900 rounded-lg p-6 max-h-96 overflow-y-auto">
+                <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">
+                  {formatCvAsJson(cvData)}
+                </pre>
               </div>
             ) : (
               <div className="text-center py-12 text-gray-400">
-                <p>No data available yet.</p>
+                <p>No data available yet. Upload a LinkedIn PDF to see the extracted data.</p>
               </div>
             )}
           </div>
@@ -340,20 +167,3 @@ export function App() {
 
 export default App;
 
-function getResumeLanguage(data: RawResume) {
-  const isSpanish = SPANISH_WORDS.every((word) => data.toLowerCase().includes(word));
-  const isEnglish = ENGLISH_WORDS.every((word) => data.toLowerCase().includes(word));
-
-  if (isSpanish) {
-    return "ES";
-  } else if (isEnglish) {
-    return "EN";
-  } else {
-    return "No language detected";
-  }
-}
-
-//TODO: this can be replaced by a library
-const SPANISH_WORDS = ["contactar", "extracto", "experiencia", "educación"];
-
-const ENGLISH_WORDS = ["contact", "summary", "experience", "education"];
