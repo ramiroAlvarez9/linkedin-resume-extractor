@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: 'Source Sans 3';
-  src: url('./assets/fonts/SourceSans3VF-Upright.otf.woff2') format('woff2');
+  font-family: "Source Sans 3";
+  src: url("./assets/fonts/SourceSans3VF-Upright.otf.woff2") format("woff2");
   font-weight: 200 900;
   font-style: normal;
   font-display: swap;
@@ -10,7 +10,11 @@
 
 @layer base {
   :root {
-    font-family: 'Source Sans 3', system-ui, -apple-system, sans-serif;
+    font-family:
+      "Source Sans 3",
+      system-ui,
+      -apple-system,
+      sans-serif;
   }
 
   body {
@@ -51,7 +55,6 @@ body::before {
 }
 
 @media (prefers-reduced-motion) {
-
   *,
   ::before,
   ::after {

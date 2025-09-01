@@ -1,6 +1,8 @@
 import "./index.css";
 import { useState, useRef } from "preact/hooks";
 import * as v from "valibot";
+import { generateText } from "ai";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 
 const RawDataSchema = v.pipe(v.string(), v.minLength(1));
 type RawResume = v.InferOutput<typeof RawDataSchema>;
@@ -13,7 +15,7 @@ export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (file: File) => {
-    if (!file.type.includes('pdf')) {
+    if (!file.type.includes("pdf")) {
       setUploadStatus("Please select a PDF file");
       return;
     }
@@ -23,16 +25,16 @@ export function App() {
 
     try {
       const formData = new FormData();
-      formData.append('pdf', file);
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
+      formData.append("pdf", file);
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
       });
 
       if (response.ok) {
         const result = await response.json();
         const rawResume = v.parse(RawDataSchema, result.rawText);
-        formatResumeData(rawResume)
+        await formatResumeData(rawResume);
         setUploadStatus("PDF processed successfully!");
         setActiveTab("data");
       } else {
@@ -46,25 +48,29 @@ export function App() {
     }
   };
 
-  const formatResumeData = (data: RawResume) => {
-    const dataLanguage = getResumeLanguage(data)
+  const formatResumeData = async (data: RawResume) => {
+    const dataLanguage = getResumeLanguage(data);
+    const cleanData = data.replace(/Page\s+\d+\s+of\s+\d+/gi, '').replace(/\n\s*\n\s*\n/g, '/n');
 
-    if (dataLanguage === 'ES') {
-      const contactarIndex = data.indexOf('Contactar');
-      const extractoIndex = data.indexOf('Extracto');
+    if (dataLanguage === "ES") {
+      const contactAndHeadline = cleanData.substring(cleanData.indexOf("Extracto"), cleanData.indexOf("Contactar")).trim();
+      const contact = contactAndHeadline.substring(cleanData.indexOf("Contactar"), cleanData.indexOf("Aptitudes principales")).trim();
+      const extract = cleanData.substring(cleanData.indexOf("Extracto"), cleanData.indexOf("Experiencia")).trim();
+      const experience = cleanData.substring(cleanData.indexOf("Educación"), cleanData.indexOf("Experiencia")).trim();
+      const education = cleanData.substring(cleanData.indexOf("Educación")).trim();
 
-      const contact = data.substring(contactarIndex, extractoIndex).trim()
-      const headline = contact.split('\n').slice(-3).join('\n');
+      console.log("Contact and headline info:", contactAndHeadline);
+      console.log("Contact: ", contact);
+      console.log("extract: ", extract);
+      console.log("experience: ", experience);
+      console.log("education: ", education);
 
-      console.log('Contact info:', contact);
-      console.log('Headline:', headline);
-    } else if (getResumeLanguage(data) === 'EN') {
-      console.log('format to english')
+    } else if (getResumeLanguage(data) === "EN") {
+      console.log("format to english");
     } else {
-      console.log('no formating')
+      console.log("no formating");
     }
-  }
-
+  };
 
   const handleFileInput = (e: Event) => {
     const target = e.target as HTMLInputElement;
@@ -81,18 +87,14 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`px-6 py-3 font-medium transition-colors ${activeTab === "upload"
-              ? "border-b-2 border-blue-500 text-blue-400"
-              : "text-gray-400 hover:text-white"
+            className={`px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
               }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("data")}
-            className={`px-6 py-3 font-medium transition-colors ${activeTab === "data"
-              ? "border-b-2 border-blue-500 text-blue-400"
-              : "text-gray-400 hover:text-white"
+            className={`px-6 py-3 font-medium transition-colors ${activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
               }`}
           >
             View Data
@@ -128,17 +130,17 @@ export function App() {
                   <div className="text-4xl mb-4">📄</div>
                   <p className="text-lg font-medium mb-2">Choose PDF File</p>
                   <p className="text-gray-400 mb-4">Drop your LinkedIn PDF resume here or click to select</p>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileInput}
-                    className="hidden"
-                  />
+                  <input ref={fileInputRef} type="file" accept=".pdf" onChange={handleFileInput} className="hidden" />
                 </div>
                 {uploadStatus && (
                   <div className="mt-4 text-center">
-                    <p className={uploadStatus.includes('Error') || uploadStatus.includes('failed') ? 'text-red-400' : 'text-green-400'}>
+                    <p
+                      className={
+                        uploadStatus.includes("Error") || uploadStatus.includes("failed")
+                          ? "text-red-400"
+                          : "text-green-400"
+                      }
+                    >
                       {uploadStatus}
                     </p>
                   </div>
@@ -166,38 +168,40 @@ export function App() {
         )}
       </div>
     </div>
-
   );
 }
 
 export default App;
 
 function getResumeLanguage(data: RawResume) {
-
-  const isSpanish = SPANISH_WORDS.every(word => data.toLowerCase().includes(word));
-  const isEnglish = ENGLISH_WORDS.every(word => data.toLowerCase().includes(word));
+  const isSpanish = SPANISH_WORDS.every((word) => data.toLowerCase().includes(word));
+  const isEnglish = ENGLISH_WORDS.every((word) => data.toLowerCase().includes(word));
 
   if (isSpanish) {
-    return 'ES'
+    return "ES";
   } else if (isEnglish) {
-    return 'EN'
+    return "EN";
   } else {
-    return 'No language detected'
+    return "No language detected";
   }
 }
 
-
 //TODO: this can be replaced by a library
-const SPANISH_WORDS = [
-  "contactar",
-  "extracto",
-  "experiencia",
-  "educación"
-];
+const SPANISH_WORDS = ["contactar", "extracto", "experiencia", "educación"];
 
-const ENGLISH_WORDS = [
-  "contact",
-  "summary",
-  "experience",
-  "education"
-];
+const ENGLISH_WORDS = ["contact", "summary", "experience", "education"];
+
+// const deepseek = createDeepSeek({
+//   apiKey: process.env.DEEPSEEK_API_KEY ?? "",
+// });
+//
+// try {
+//   const { text, usage } = await generateText({
+//     model: deepseek("deepseek-chat"),
+//     prompt: `Extract structured information from this LinkedIn resume data: ${data}. Return as JSON with fields: name, headline, contact, experience, education, skills.`,
+//   });
+// } catch (error) {
+//   console.error("AI processing error:", error);
+// }
+
+

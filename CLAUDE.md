@@ -19,6 +19,7 @@ Default to using Bun instead of Node.js.
 - **Install dependencies**: `bun install`
 
 The build script (`build.ts`) supports various options:
+
 - `--outdir <path>` - Output directory (default: "dist")
 - `--minify` - Enable minification
 - `--sourcemap <type>` - Sourcemap type: none|linked|inline|external
@@ -30,12 +31,14 @@ The build script (`build.ts`) supports various options:
 This is a full-stack React application using Bun's built-in server and bundler:
 
 **Server (`src/index.tsx`)**:
+
 - Uses `Bun.serve()` with route-based API endpoints
 - Serves static React app for unmatched routes (`/*`)
 - API routes under `/api/` namespace
 - Hot module reloading enabled in development
 
 **Frontend**:
+
 - Preact with TypeScript (not React)
 - Use `import { useState } from "preact/hooks"` instead of `import { useState } from "react"`
 - Use `import { render } from "preact"` for rendering
@@ -44,6 +47,7 @@ This is a full-stack React application using Bun's built-in server and bundler:
 - Uses Tailwind CSS v4 for styling via `bun-plugin-tailwind`
 
 **Build System**:
+
 - Bun's built-in bundler with HTML file processing
 - Tailwind CSS plugin automatically configured
 - TypeScript compilation with strict mode enabled
@@ -150,16 +154,18 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 # LinkedIn PDF Extraction → API System
 
 ## Stack
+
 - **Runtime:** Bun + TypeScript
 - **PDF Processing:** pdf-ts
 - **Database:** Supabase (free PostgreSQL)
 - **Deploy:** Railway/Vercel
 
 ## Flow
+
 1. `POST /upload` - PDF → extract data → JSON → Supabase
-2. `GET /profiles` - public API from Supabase  
+2. `GET /profiles` - public API from Supabase
 3. Simple frontend for upload
 
 ## Database Schema
-Normalized tables: `profiles`, `experiences`, `education`, `skills`, `languages` (with UUIDs and relations)
 
+Normalized tables: `profiles`, `experiences`, `education`, `skills`, `languages` (with UUIDs and relations)

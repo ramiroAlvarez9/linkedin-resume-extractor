@@ -4,7 +4,7 @@ import { pdfToText } from "pdf-ts";
 
 function isLinkedInResume(text: string): boolean {
   const lowerText = text.toLowerCase();
-  return lowerText.includes('linkedin.com/in/');
+  return lowerText.includes("linkedin.com/in/");
 }
 
 function parseLinkedInPDF(text: string) {
@@ -15,15 +15,18 @@ function parseLinkedInPDF(text: string) {
     summary: "",
     experience: [] as any[],
     education: [] as any[],
-    skills: [] as string[]
+    skills: [] as string[],
   };
 
-  const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+  const lines = text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line);
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
-    if (line && !profile.name && line.length > 2 && !line.includes('@') && !line.includes('http')) {
+    if (line && !profile.name && line.length > 2 && !line.includes("@") && !line.includes("http")) {
       profile.name = line;
     }
   }
@@ -40,7 +43,7 @@ const server = serve({
       async POST(req) {
         try {
           const formData = await req.formData();
-          const pdfFile = formData.get('pdf') as File;
+          const pdfFile = formData.get("pdf") as File;
           if (!pdfFile) {
             return Response.json({ error: "No PDF file provided" }, { status: 400 });
           }
@@ -56,13 +59,13 @@ const server = serve({
           return Response.json({
             success: true,
             data: extractedData,
-            rawText: text
+            rawText: text,
           });
         } catch (error) {
-          console.error('PDF processing error:', error);
+          console.error("PDF processing error:", error);
           return Response.json({ error: "Failed to process PDF" }, { status: 500 });
         }
-      }
+      },
     },
   },
   development: {
