@@ -1,30 +1,25 @@
 import "./index.css";
-import { useState, useRef } from "preact/hooks";
+import { useState, useRef, type StateUpdater, type Dispatch } from "preact/hooks";
 import type { CV } from "./schemas/cv";
 import { CVSchema } from "./schemas/cv";
 import * as v from "valibot";
+import HarvardCV from "./components/harvardCv";
 
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<"upload" | "data">("upload");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeTab, setActiveTab] = useState<"upload" | "data" | "harvard-cv">("upload");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>("");
   const [cvData, setCvData] = useState<CV | null>(() => {
-    try {
-      const stored = localStorage.getItem("parsedCv");
-      if (!stored) return null;
-      const parsed = JSON.parse(stored);
-      return v.parse(CVSchema, parsed);
-    } catch {
+    const storedCv = localStorage.getItem("parsedCv");
+    if (!storedCv) {
       return null;
+    } else {
+      const parsedCv = JSON.parse(storedCv);
+      return v.parse(CVSchema, parsedCv);
     }
   });
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const formatCvAsJson = (cv: CV): string => {
-    return JSON.stringify(cv, null, 2);
-  };
 
   const handleFileUpload = async (file: File) => {
     if (!file.type.includes("pdf")) {
@@ -42,20 +37,7 @@ export function App() {
         method: "POST",
         body: formData,
       });
-
-      if (response.ok) {
-        const result = await response.json();
-
-        localStorage.setItem("parsedCv", JSON.stringify(result.data));
-        setCvData(result.data);
-        console.log("CV data saved to localStorage:", result.data);
-
-        setUploadStatus("PDF processed successfully!");
-        setActiveTab("data");
-      } else {
-        const error = await response.json();
-        setUploadStatus(error.error || "Error processing PDF");
-      }
+      saveCvData(response, setCvData, setUploadStatus, setActiveTab)
     } catch (error) {
       console.error(error);
       setUploadStatus("Upload failed");
@@ -63,7 +45,6 @@ export function App() {
       setIsLoading(false);
     }
   };
-
 
   const handleFileInput = (e: Event) => {
     const target = e.target as HTMLInputElement;
@@ -74,23 +55,30 @@ export function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-gray-800 text-white p-6">
+    <div className="w-screen min-h-screen bg-gray-800 text-white p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">LinkedIn Portfolio Data Extractor</h1>
+        <h1 className="p-8 text-3xl font-bold mb-8 text-center">LinkedIn Portfolio Data Extractor</h1>
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
               }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("data")}
-            className={`px-6 py-3 font-medium transition-colors ${activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            className={`cursor-pointer  px-6 py-3 font-medium transition-colors ${activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
               }`}
           >
             View Data
+          </button>
+          <button
+            onClick={() => setActiveTab("harvard-cv")}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "harvard-cv" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+              }`}
+          >
+            Harvard CV
           </button>
         </div>
         {activeTab === "upload" && (
@@ -150,7 +138,7 @@ export function App() {
             {cvData ? (
               <div className="bg-gray-900 rounded-lg p-6 max-h-96 overflow-y-auto">
                 <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">
-                  {formatCvAsJson(cvData)}
+                  {JSON.stringify(cvData, null, 2)}
                 </pre>
               </div>
             ) : (
@@ -160,6 +148,30 @@ export function App() {
             )}
           </div>
         )}
+
+        {activeTab === "harvard-cv" && (
+          <div className="bg-gray-800 rounded-lg p-8">
+            <h2 className="text-xl font-semibold mb-6 text-center">Harvard CV</h2>
+            <div className="flex justify-center">
+              <div
+                className="bg-white shadow-lg"
+                style={{
+                  width: '210mm',
+                  maxWidth: '100%',
+                  padding: 0
+                }}
+              >
+                {cvData ? (
+                  <HarvardCV cvData={cvData} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500 p-8">
+                    <p>No data available yet. Upload a LinkedIn PDF to generate the Harvard CV.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -167,3 +179,23 @@ export function App() {
 
 export default App;
 
+
+const saveCvData = async (
+  response: Response,
+  setCvData: Dispatch<StateUpdater<CV | null>>,
+  setUploadStatus: Dispatch<StateUpdater<string>>,
+  setActiveTab: Dispatch<StateUpdater<"data" | "upload" | "harvard-cv">>,
+) => {
+  const result = await response.json();
+  if (response.ok) {
+    localStorage.setItem("parsedCv", JSON.stringify(result.data));
+    setCvData(result.data);
+    console.log("CV data saved to localStorage:", result.data);
+
+    setUploadStatus("PDF processed successfully!");
+    setActiveTab("data");
+  } else {
+    const error = await response.json();
+    setUploadStatus(error.error || "Error processing PDF");
+  }
+};

@@ -37,9 +37,7 @@ async function formatResumeData(data: string) {
 
   if (dataLanguage === "ES") {
     const headerSection = cleanData.substring(0, cleanData.indexOf("Extracto")).trim();
-    const summarySection = cleanData
-      .substring(cleanData.indexOf("Extracto"), cleanData.indexOf("Experiencia"))
-      .trim();
+    const summarySection = cleanData.substring(cleanData.indexOf("Extracto"), cleanData.indexOf("Experiencia")).trim();
     const experienceSection = cleanData
       .substring(cleanData.indexOf("Experiencia"), cleanData.indexOf("Educación"))
       .trim();
@@ -86,7 +84,7 @@ async function formatResumeData(data: string) {
     }`;
 
     try {
-      const { text, usage } = await generateText({
+      const { text } = await generateText({
         model: deepseek("deepseek-chat"),
         prompt: `Extract and structure information from this Spanish LinkedIn resume into the exact JSON format specified.
 
@@ -114,10 +112,10 @@ async function formatResumeData(data: string) {
       let cleanedText = text.trim();
 
       // Remove markdown code blocks if present
-      if (cleanedText.startsWith('```json')) {
-        cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanedText.startsWith('```')) {
-        cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      if (cleanedText.startsWith("```json")) {
+        cleanedText = cleanedText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.replace(/^```\s*/, "").replace(/\s*```$/, "");
       }
 
       const parsedData = JSON.parse(cleanedText);
@@ -199,15 +197,15 @@ async function formatResumeData(data: string) {
           JSON Response:`,
       });
 
-      console.log('response', text)
+      console.log("response", text);
 
       let cleanedText = text.trim();
 
       // Remove markdown code blocks if present
-      if (cleanedText.startsWith('```json')) {
-        cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanedText.startsWith('```')) {
-        cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      if (cleanedText.startsWith("```json")) {
+        cleanedText = cleanedText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.replace(/^```\s*/, "").replace(/\s*```$/, "");
       }
 
       const parsedData = JSON.parse(cleanedText);
