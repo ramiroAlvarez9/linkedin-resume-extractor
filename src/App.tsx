@@ -5,7 +5,6 @@ import { CVSchema } from "./schemas/cv";
 import * as v from "valibot";
 import HarvardCV from "./components/harvardCv";
 
-
 export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "data" | "harvard-cv">("upload");
@@ -37,7 +36,7 @@ export function App() {
         method: "POST",
         body: formData,
       });
-      saveCvData(response, setCvData, setUploadStatus, setActiveTab)
+      saveCvData(response, setCvData, setUploadStatus, setActiveTab);
     } catch (error) {
       console.error(error);
       setUploadStatus("Upload failed");
@@ -61,22 +60,25 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
+              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("data")}
-            className={`cursor-pointer  px-6 py-3 font-medium transition-colors ${activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer  px-6 py-3 font-medium transition-colors ${
+              activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             View Data
           </button>
           <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "harvard-cv" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
+              activeTab === "harvard-cv" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             Harvard CV
           </button>
@@ -153,9 +155,7 @@ export function App() {
           <div className="bg-gray-800 rounded-lg p-8">
             <h2 className="text-xl font-semibold mb-6 text-center">Harvard CV</h2>
             <div className="flex justify-center">
-              <div
-                className="bg-white shadow-lg w-full max-w-full p-0"
-              >
+              <div className="bg-white shadow-lg w-full max-w-full p-0">
                 {cvData ? (
                   <HarvardCV cvData={cvData} />
                 ) : (
@@ -173,7 +173,6 @@ export function App() {
 }
 
 export default App;
-
 
 const saveCvData = async (
   response: Response,

@@ -6,6 +6,9 @@ import { generateText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { CVSchema } from "./schemas/cv";
 
+
+let MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 function isLinkedInResume(text: string): boolean {
   const lowerText = text.toLowerCase();
   return lowerText.includes("linkedin.com/in/");
@@ -32,6 +35,9 @@ async function formatResumeData(data: string) {
     apiKey: process.env.DEEPSEEK_API_KEY ?? "",
   });
 
+  const date = new Date();
+  const currentYear = date.getFullYear();
+  let currentMonth = MONTHS[date.getMonth()];
   const dataLanguage = getResumeLanguage(data);
   const cleanData = data.replace(/Page\s+\d+\s+of\s+\d+/gi, "").replace(/\n\s*\n\s*\n/g, "\n");
 
@@ -45,7 +51,6 @@ async function formatResumeData(data: string) {
       .substring(cleanData.indexOf("Educación"), cleanData.indexOf("Aptitudes principales"))
       .trim();
     const skillsSection = cleanData.substring(cleanData.indexOf("Aptitudes principales")).trim();
-
     const contactInfo = headerSection.substring(headerSection.indexOf("Contactar")).trim();
 
     const schemaDescription = `
@@ -68,18 +73,17 @@ async function formatResumeData(data: string) {
       "experience": [{
         "company": "string",
         "position": "string", 
-        "startDate": "string (format: YYYY-MM or similar)",
-        "endDate": "string (format: YYYY-MM or 'Present')",
-        "duration": "string (e.g., '2 años 3 meses')",
+        "startDate": "string (Month Year)",
+        "endDate": "string (Month Year. If is "Present" the you need replace this for ${currentMonth} ${currentYear})",
+        "duration": "string",
         "location": "string",
-        "achievements": ["array of key achievements"],
-        "technologies": ["array of technologies used (optional)"]
+        "description": ["description of tasks in the company (optional, can be empty.)"],
       }],
       "education": [{
         "institution": "string",
         "degree": "string",
         "field": "string", 
-        "period": "string (time period)"
+        "period": "string (e.g Month Year- Month Year)"
       }]
     }`;
 
@@ -157,18 +161,17 @@ async function formatResumeData(data: string) {
       "experience": [{
         "company": "string",
         "position": "string", 
-        "startDate": "string (format: YYYY-MM or similar)",
-        "endDate": "string (format: YYYY-MM or 'Present')",
-        "duration": "string (e.g., '2 years 3 months')",
+        "startDate": "string (Month Year)",
+        "endDate": "string (Month Year. If its "Present" the you need replace this for ${currentMonth} ${currentYear})",
+        "duration": "string",
         "location": "string",
-        "achievements": ["array of key achievements"],
-        "technologies": ["array of technologies used (optional)"]
+        "description": ["description of tasks in the company (optional, can be empty.)"],
       }],
       "education": [{
         "institution": "string",
         "degree": "string",
         "field": "string", 
-        "period": "string (time period)"
+        "period": "string (e.g Month Year - Month Year)"
       }]
     }`;
 
@@ -176,7 +179,6 @@ async function formatResumeData(data: string) {
       const { text } = await generateText({
         model: deepseek("deepseek-chat"),
         prompt: `Extract and structure information from this English LinkedIn resume into the exact JSON format specified.
-
           RESUME SECTIONS:
           Header/Contact: ${headerSection}
           Contact Info: ${contactInfo}

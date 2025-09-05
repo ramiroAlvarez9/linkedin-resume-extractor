@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.56.0",
     "ai": "^5.0.28",
     "bun-plugin-tailwind": "^0.0.15",
+    "lucide-react": "^0.542.0",
     "pdf-ts": "^0.0.2",
     "preact": "^10",
     "tailwindcss": "^4.1.11",

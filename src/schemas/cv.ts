@@ -24,8 +24,7 @@ export const ExperienceSchema = v.object({
   endDate: v.string(),
   duration: v.string(),
   location: v.string(),
-  achievements: v.array(v.string()),
-  technologies: v.optional(v.array(v.string())),
+  description: v.optional(v.array(v.string())),
 });
 
 export const EducationSchema = v.object({
