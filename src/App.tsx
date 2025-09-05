@@ -154,12 +154,7 @@ export function App() {
             <h2 className="text-xl font-semibold mb-6 text-center">Harvard CV</h2>
             <div className="flex justify-center">
               <div
-                className="bg-white shadow-lg"
-                style={{
-                  width: '210mm',
-                  maxWidth: '100%',
-                  padding: 0
-                }}
+                className="bg-white shadow-lg w-full max-w-full p-0"
               >
                 {cvData ? (
                   <HarvardCV cvData={cvData} />

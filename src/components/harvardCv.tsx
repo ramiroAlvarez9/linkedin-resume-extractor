@@ -65,7 +65,7 @@ function HarvardCV({ cvData }: HarvardCVProps): JSX.Element {
             )}
             <ul className="mt-2 ml-6 space-y-1">
               {exp.achievements.map((achievement, achievementIndex) => (
-                <li key={achievementIndex} className="text-sm" style={{ listStyleType: 'disc' }}>
+                <li key={achievementIndex} className="text-sm list-disc">
                   {achievement}
                 </li>
               ))}
