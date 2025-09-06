@@ -74,7 +74,7 @@ async function formatResumeData(data: string) {
         "company": "string",
         "position": "string", 
         "startDate": "string (Month Year)",
-        "endDate": "string (Month Year. If is "Present" the you need replace this for ${currentMonth} ${currentYear})",
+        "endDate": "string (Month Year)",
         "duration": "string",
         "location": "string",
         "description": ["description of tasks in the company (optional, can be empty.)"],
@@ -83,7 +83,7 @@ async function formatResumeData(data: string) {
         "institution": "string",
         "degree": "string",
         "field": "string", 
-        "period": "string (e.g Month Year- Month Year)"
+        "period": "string (e.g Month Year - Month Year)"
       }]
     }`;
 
@@ -162,7 +162,7 @@ async function formatResumeData(data: string) {
         "company": "string",
         "position": "string", 
         "startDate": "string (Month Year)",
-        "endDate": "string (Month Year. If its "Present" the you need replace this for ${currentMonth} ${currentYear})",
+        "endDate": "string (Month Year)",
         "duration": "string",
         "location": "string",
         "description": ["description of tasks in the company (optional, can be empty.)"],

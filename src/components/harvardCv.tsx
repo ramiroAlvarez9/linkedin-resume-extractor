@@ -13,7 +13,7 @@ function HarvardCV({ cvData }: HarvardCVProps): JSX.Element {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white p-8 text-black font-sans text-xs leading-tight">
+    <div className="w-[210mm] h-[297mm] mx-auto bg-white p-8 text-black font-sans text-xs leading-tight overflow-auto shadow-lg [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400/70">
       <div className="text-center mb-6">
         <div className="relative">
           <h1 className="text-lg font-bold mb-2">{cvData.name}</h1>
