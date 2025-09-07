@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, LevelFormat } from "docx";
+import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, LevelFormat, TabStopType } from "docx";
 import { type CV } from "@/schemas/cv";
 
 const formatDate = (dateStr: string): string => {
@@ -79,7 +79,6 @@ export const generateHarvardCV = (cvData: CV): Document => {
 
           // EDUCATION Section
           new Paragraph({
-            text: "Education",
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
@@ -103,12 +102,18 @@ export const generateHarvardCV = (cvData: CV): Document => {
                   size: 22,
                 }),
                 new TextRun({
-                  text: "\t\t\t",
+                  text: "                                                            " // Single tab
                 }),
                 new TextRun({
                   text: edu.period,
                   size: 22,
                 }),
+              ],
+              tabStops: [
+                {
+                  type: TabStopType.RIGHT,
+                  position: 9026, // Right edge of page (6.27 inches in twips)
+                },
               ],
               indent: {
                 left: 240,
@@ -117,6 +122,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                 after: 120,
               },
             }),
+
             new Paragraph({
               children: [
                 new TextRun({
@@ -135,7 +141,6 @@ export const generateHarvardCV = (cvData: CV): Document => {
 
           // EXPERIENCE Section
           new Paragraph({
-            text: "Experience",
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
@@ -234,7 +239,6 @@ export const generateHarvardCV = (cvData: CV): Document => {
 
           // TECHNICAL SKILLS & LANGUAGES Section
           new Paragraph({
-            text: "Technical Skills & Languages",
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
