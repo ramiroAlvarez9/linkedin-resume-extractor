@@ -4,6 +4,7 @@ import type { CV } from "./schemas/cv";
 import { CVSchema } from "./schemas/cv";
 import * as v from "valibot";
 import HarvardCV from "./components/harvardCv";
+import { downloadDocx } from "./utils/docxGenerator";
 
 export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,6 +54,15 @@ export function App() {
     }
   };
 
+  const handleDownloadDocx = async () => {
+    if (!cvData) return;
+    try {
+      await downloadDocx(cvData, `${cvData.name.replace(/\s+/g, "_")}_Harvard_CV.docx`);
+    } catch (error) {
+      console.error("Error generating DOCX:", error);
+    }
+  };
+
   return (
     <div className="w-screen min-h-screen bg-gray-800 text-white p-6">
       <div className="max-w-4xl mx-auto">
@@ -60,24 +70,27 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
+              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("data")}
-            className={`cursor-pointer  px-6 py-3 font-medium transition-colors ${activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer  px-6 py-3 font-medium transition-colors ${
+              activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             View Data
           </button>
           <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${activeTab === "harvard-cv"
-              ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
-              : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${
+              activeTab === "harvard-cv"
+                ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
+            }`}
           >
             🎓 Harvard CV
           </button>
@@ -153,8 +166,12 @@ export function App() {
         {activeTab === "harvard-cv" && (
           <div className="bg-gray-800 rounded-lg p-8">
             <div className="flex justify-center items-center p-4">
-              <button className="cursor-pointer px-4 py-2 bg-emerald-600 lg:hover:bg-emerald-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md lg:hover:shadow-lg lg:hover:scale-105 flex items-center gap-2">
-                📥 Download .doc
+              <button
+                onClick={handleDownloadDocx}
+                disabled={!cvData}
+                className="cursor-pointer px-4 py-2 bg-emerald-600 lg:hover:bg-emerald-700 text-white font-medium rounded-lg transition-all duration-200 shadow-md lg:hover:shadow-lg lg:hover:scale-105 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                📥 Download .docx
               </button>
             </div>
             <div className="flex justify-center">
@@ -183,16 +200,15 @@ const saveCvData = async (
   setUploadStatus: Dispatch<StateUpdater<string>>,
   setActiveTab: Dispatch<StateUpdater<"data" | "upload" | "harvard-cv">>,
 ) => {
-  const result = await response.json();
+  const payload = await response.json();
   if (response.ok) {
-    localStorage.setItem("parsedCv", JSON.stringify(result.data));
-    setCvData(result.data);
-    console.log("CV data saved to localStorage:", result.data);
+    localStorage.setItem("parsedCv", JSON.stringify(payload.data));
+    setCvData(payload.data);
+    console.log("CV data saved to localStorage:", payload.data);
 
     setUploadStatus("PDF processed successfully!");
     setActiveTab("data");
   } else {
-    const error = await response.json();
-    setUploadStatus(error.error || "Error processing PDF");
+    setUploadStatus(payload.error || "Error processing PDF");
   }
 };

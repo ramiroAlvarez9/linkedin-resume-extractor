@@ -5,6 +5,10 @@
  * It is included in `src/index.html`.
  */
 
+// Add Buffer polyfill for docx library browser compatibility
+import { Buffer } from "buffer";
+globalThis.Buffer = Buffer;
+
 import { render } from "preact";
 import App from "./App";
 

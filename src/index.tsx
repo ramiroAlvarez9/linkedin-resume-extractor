@@ -6,8 +6,20 @@ import { generateText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { CVSchema } from "./schemas/cv";
 
-
-let MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+let MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function isLinkedInResume(text: string): boolean {
   const lowerText = text.toLowerCase();

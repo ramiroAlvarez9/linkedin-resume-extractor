@@ -58,12 +58,12 @@ function HarvardCV({ cvData }: HarvardCVProps): JSX.Element {
                   {formatDate(exp.startDate)} – {formatDate(exp.endDate)}
                 </span>
               </div>
-
             </div>
             <ul className="mt-2 ml-6 space-y-1">
-              {exp.description?.map((description, index) => (<li key={`${exp.company}+${index}`} className="text-sm list-disc">
-                {description}
-              </li>
+              {exp.description?.map((description, index) => (
+                <li key={`${exp.company}+${index}`} className="text-sm list-disc">
+                  {description}
+                </li>
               ))}
             </ul>
           </div>
