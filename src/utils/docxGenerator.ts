@@ -1,4 +1,14 @@
-import { Document, Packer, Paragraph, TextRun, AlignmentType, BorderStyle, LevelFormat, TabStopType } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  AlignmentType,
+  BorderStyle,
+  LevelFormat,
+  TabStopType,
+  TabStopPosition,
+} from "docx";
 import { type CV } from "@/schemas/cv";
 
 const formatDate = (dateStr: string): string => {
@@ -102,7 +112,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                   size: 22,
                 }),
                 new TextRun({
-                  text: "                                                            " // Single tab
+                  text: "\t", // Single tab
                 }),
                 new TextRun({
                   text: edu.period,
@@ -112,7 +122,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
               tabStops: [
                 {
                   type: TabStopType.RIGHT,
-                  position: 9026, // Right edge of page (6.27 inches in twips)
+                  position: TabStopPosition.MAX, 
                 },
               ],
               indent: {
@@ -158,9 +168,9 @@ export const generateHarvardCV = (cvData: CV): Document => {
           ...cvData.experience.flatMap((exp, index) => {
             const entries: Paragraph[] = [];
 
-            // Company and position on left, location and dates on right
             entries.push(
               new Paragraph({
+                alignment: AlignmentType.LEFT,
                 children: [
                   new TextRun({
                     text: exp.company,
@@ -168,12 +178,18 @@ export const generateHarvardCV = (cvData: CV): Document => {
                     size: 22,
                   }),
                   new TextRun({
-                    text: "\t\t\t",
+                    text: "\t",
                   }),
                   new TextRun({
                     text: exp.location,
                     size: 22,
                   }),
+                ],
+                tabStops: [
+                  {
+                    type: TabStopType.RIGHT,
+                    position: TabStopPosition.MAX,
+                  },
                 ],
                 indent: {
                   left: 240,
@@ -193,7 +209,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                     size: 22,
                   }),
                   new TextRun({
-                    text: "\t\t\t",
+                    text: "\t",
                   }),
                   new TextRun({
                     text: `${formatDate(exp.startDate)} – ${formatDate(exp.endDate)}`,
