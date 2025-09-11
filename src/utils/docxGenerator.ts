@@ -65,7 +65,8 @@ export const generateHarvardCV = (cvData: CV): Document => {
             children: [
               new TextRun({
                 text: `${cvData.location} • ${cvData.contact.email} • ${cvData.contact.mobile}`,
-                size: 24, // 12pt
+                size: 22,
+                font: "Liberation Sans",
               }),
             ],
             spacing: {
@@ -79,7 +80,8 @@ export const generateHarvardCV = (cvData: CV): Document => {
             children: [
               new TextRun({
                 text: `${cvData.contact.github} • ${cvData.contact.linkedin}`,
-                size: 24,
+                size: 22,
+                font: "Liberation Sans",
               }),
             ],
             spacing: {
@@ -94,7 +96,8 @@ export const generateHarvardCV = (cvData: CV): Document => {
               new TextRun({
                 text: "Education",
                 bold: true,
-                size: 28, // 14pt
+                size: 22,
+                font: "Liberation Sans",
               }),
             ],
             spacing: {
@@ -110,6 +113,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                   text: edu.institution,
                   bold: true,
                   size: 22,
+                  font: "Liberation Sans",
                 }),
                 new TextRun({
                   text: "\t", // Single tab
@@ -117,12 +121,13 @@ export const generateHarvardCV = (cvData: CV): Document => {
                 new TextRun({
                   text: edu.period,
                   size: 22,
+                  font: "Liberation Sans",
                 }),
               ],
               tabStops: [
                 {
                   type: TabStopType.RIGHT,
-                  position: TabStopPosition.MAX, 
+                  position: TabStopPosition.MAX,
                 },
               ],
               indent: {
@@ -138,6 +143,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                 new TextRun({
                   text: `${edu.degree} in ${edu.field}`,
                   size: 22,
+                  font: "Liberation Sans",
                 }),
               ],
               indent: {
@@ -156,7 +162,8 @@ export const generateHarvardCV = (cvData: CV): Document => {
               new TextRun({
                 text: "Experience",
                 bold: true,
-                size: 28,
+                size: 22,
+                font: "Liberation Sans",
               }),
             ],
             spacing: {
@@ -176,6 +183,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                     text: exp.company,
                     bold: true,
                     size: 22,
+                    font: "Liberation Sans",
                   }),
                   new TextRun({
                     text: "\t",
@@ -183,6 +191,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                   new TextRun({
                     text: exp.location,
                     size: 22,
+                    font: "Liberation Sans",
                   }),
                 ],
                 tabStops: [
@@ -207,6 +216,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                     text: exp.position,
                     bold: true,
                     size: 22,
+                    font: "Liberation Sans",
                   }),
                   new TextRun({
                     text: "\t",
@@ -214,7 +224,14 @@ export const generateHarvardCV = (cvData: CV): Document => {
                   new TextRun({
                     text: `${formatDate(exp.startDate)} – ${formatDate(exp.endDate)}`,
                     size: 22,
+                    font: "Liberation Sans",
                   }),
+                ],
+                tabStops: [
+                  {
+                    type: TabStopType.RIGHT,
+                    position: TabStopPosition.MAX,
+                  },
                 ],
                 indent: {
                   left: 240,
@@ -234,6 +251,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                       new TextRun({
                         text: desc,
                         size: 22,
+                        font: "Liberation Sans",
                       }),
                     ],
                     bullet: {
@@ -243,11 +261,23 @@ export const generateHarvardCV = (cvData: CV): Document => {
                       left: 720,
                     },
                     spacing: {
-                      after: descIndex === exp.description.length - 1 ? 360 : 120,
+                      after: descIndex === exp.description.length - 1 ? 120 : 120,
                     },
                   }),
                 );
               });
+            }
+
+            // Add extra spacing between experience blocks (except for the last one)
+            if (index < cvData.experience.length - 1) {
+              entries.push(
+                new Paragraph({
+                  children: [new TextRun({ text: "\t" })],
+                  spacing: {
+                    after: 240,
+                  },
+                }),
+              );
             }
 
             return entries;
@@ -258,9 +288,10 @@ export const generateHarvardCV = (cvData: CV): Document => {
             alignment: AlignmentType.CENTER,
             children: [
               new TextRun({
-                text: "Technical Skills & Languages",
+                text: "Skills & Interest",
                 bold: true,
-                size: 28,
+                size: 22,
+                font: "Liberation Sans",
               }),
             ],
             spacing: {
@@ -272,13 +303,15 @@ export const generateHarvardCV = (cvData: CV): Document => {
           new Paragraph({
             children: [
               new TextRun({
-                text: "Technical Skills: ",
+                text: "Technical: ",
                 bold: true,
                 size: 22,
+                font: "Liberation Sans",
               }),
               new TextRun({
                 text: cvData.skills.mainSkills.join(", "),
                 size: 22,
+                font: "Liberation Sans",
               }),
             ],
             indent: {
@@ -296,6 +329,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                 text: "Languages: ",
                 bold: true,
                 size: 22,
+                font: "Liberation Sans",
               }),
               ...cvData.skills.languages.flatMap((lang, index) => {
                 const elements: TextRun[] = [];
@@ -303,6 +337,7 @@ export const generateHarvardCV = (cvData: CV): Document => {
                   new TextRun({
                     text: `${lang.name} (${lang.level})`,
                     size: 22,
+                    font: "Liberation Sans",
                   }),
                 );
                 if (index < cvData.skills.languages.length - 1) {
@@ -310,10 +345,59 @@ export const generateHarvardCV = (cvData: CV): Document => {
                     new TextRun({
                       text: ", ",
                       size: 22,
+                      font: "Liberation Sans",
                     }),
                   );
                 }
                 return elements;
+              }),
+            ],
+            indent: {
+              left: 240,
+            },
+            spacing: {
+              after: 240,
+            },
+          }),
+
+          // Laboratory
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Laboratory: ",
+                bold: true,
+                size: 22,
+                font: "Liberation Sans",
+              }),
+              new TextRun({
+                text: "-optional- List scientific / research lab techniques or tools [If Applicable]",
+                size: 22,
+                font: "Liberation Sans",
+                italics: true,
+              }),
+            ],
+            indent: {
+              left: 240,
+            },
+            spacing: {
+              after: 240,
+            },
+          }),
+
+          // Interests
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Interests: ",
+                bold: true,
+                size: 22,
+                font: "Liberation Sans",
+              }),
+              new TextRun({
+                text: "List activities you enjoy that may spark interview conversation",
+                size: 22,
+                font: "Liberation Sans",
+                italics: true,
               }),
             ],
             indent: {
@@ -334,8 +418,9 @@ export const generateHarvardCV = (cvData: CV): Document => {
           basedOn: "Normal",
           next: "Normal",
           run: {
-            size: 36, // 18pt
+            size: 22,
             bold: true,
+            font: "Liberation Sans",
           },
         },
       ],
