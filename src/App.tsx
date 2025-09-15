@@ -70,27 +70,17 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
-              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-            }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+              }`}
           >
             Upload PDF
           </button>
           <button
-            onClick={() => setActiveTab("data")}
-            className={`cursor-pointer  px-6 py-3 font-medium transition-colors ${
-              activeTab === "data" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            View Data
-          </button>
-          <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${
-              activeTab === "harvard-cv"
-                ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
-            }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${activeTab === "harvard-cv"
+              ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
+              }`}
           >
             🎓 Harvard CV
           </button>
@@ -140,24 +130,6 @@ export function App() {
                     </p>
                   </div>
                 )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === "data" && (
-          <div className="bg-gray-800 rounded-lg p-8">
-            <h2 className="text-xl font-semibold mb-6">Extracted Data</h2>
-
-            {cvData ? (
-              <div className="bg-gray-900 rounded-lg p-6 max-h-96 overflow-y-auto">
-                <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono leading-relaxed">
-                  {JSON.stringify(cvData, null, 2)}
-                </pre>
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-400">
-                <p>No data available yet. Upload a LinkedIn PDF to see the extracted data.</p>
               </div>
             )}
           </div>
