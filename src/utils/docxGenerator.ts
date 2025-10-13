@@ -456,7 +456,6 @@ export const generateHarvardCV = (cvData: CV): Document => {
 export const downloadDocx = async (cvData: CV, filename: string = "harvard-cv.docx"): Promise<void> => {
   const doc = generateHarvardCV(cvData);
   try {
-    // Use toBlob which should now work with Buffer polyfill
     const blob = await Packer.toBlob(doc);
 
     const url = URL.createObjectURL(blob);

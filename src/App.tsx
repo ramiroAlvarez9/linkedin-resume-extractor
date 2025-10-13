@@ -22,7 +22,7 @@ export function App() {
   });
 
   const handleFileUpload = async (file: File) => {
-    if (!file.type.includes("pdf")) {
+    if (file.type.includes("pdf")) {
       setUploadStatus("Please select a PDF file");
       return;
     }

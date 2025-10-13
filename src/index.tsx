@@ -47,9 +47,6 @@ async function formatResumeData(data: string) {
     apiKey: process.env.DEEPSEEK_API_KEY ?? "",
   });
 
-  const date = new Date();
-  const currentYear = date.getFullYear();
-  let currentMonth = MONTHS[date.getMonth()];
   const dataLanguage = getResumeLanguage(data);
   const cleanData = data.replace(/Page\s+\d+\s+of\s+\d+/gi, "").replace(/\n\s*\n\s*\n/g, "\n");
 
@@ -127,7 +124,6 @@ async function formatResumeData(data: string) {
 
       let cleanedText = text.trim();
 
-      // Remove markdown code blocks if present
       if (cleanedText.startsWith("```json")) {
         cleanedText = cleanedText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
       } else if (cleanedText.startsWith("```")) {
