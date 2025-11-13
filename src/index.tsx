@@ -269,6 +269,86 @@ const server = serve({
         }
       },
     },
+    "/api/my-table": {
+      async GET() {
+        const { createClient } = await import("@supabase/supabase-js");
+
+        const url = process.env.SUPABASE_URL;
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        const debugInfo: Record<string, unknown> = {
+          supabaseUrl: url,
+          serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
+        };
+
+        if (!url || !key) {
+          return Response.json(
+            { error: "Supabase no configurado", debug: debugInfo },
+            { status: 500 }
+          );
+        }
+
+        const table = "iplimiter";
+        const supabase = createClient(url, key, { auth: { persistSession: false } });
+
+        const countTest = await supabase
+          .from(table)
+          .select("*", { count: "exact", head: true });
+
+        debugInfo.count = countTest.count;
+        debugInfo.countError = countTest.error;
+
+        const { data, error } = await supabase
+          .from(table)
+          .select("*");
+
+        if (error) {
+          return Response.json({ error: error.message, debug: debugInfo }, { status: 500 });
+        }
+
+        return Response.json({ data, debug: debugInfo });
+      },
+
+      async POST(req) {
+        const { createClient } = await import("@supabase/supabase-js");
+
+        const url = process.env.SUPABASE_URL ?? "";
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? "";
+        const debugInfo = {
+          supabaseUrl: url,
+          serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0,
+          anonKeyLength: process.env.SUPABASE_ANON_KEY?.length ?? 0,
+        };
+
+        console.log("URL:", url);
+        console.log("SERVICE ROLE LEN:", key?.length);
+        console.log("SUPABASE_URL:", debugInfo.supabaseUrl);
+        console.log("SERVICE_ROLE length:", debugInfo.serviceRoleLength);
+        console.log("ANON_KEY length:", debugInfo.anonKeyLength);
+
+        if (!url || !key) {
+          return Response.json(
+            { error: "Supabase no configurado", debug: debugInfo },
+            { status: 500 }
+          );
+        }
+
+        const table = "ip-limiter";
+        const body = await req.json(); // { ...campos de tu tabla... }
+        const supabase = createClient(url, key, { auth: { persistSession: false } });
+
+        const { data, error } = await supabase
+          .from(table)
+          .insert(body)
+          .select();
+
+        if (error) {
+          return Response.json({ error: error.message, debug: debugInfo }, { status: 500 });
+        }
+
+        return Response.json({ data, debug: debugInfo });
+      },
+    }
   },
   development: {
     // Enable browser hot reloading in development
