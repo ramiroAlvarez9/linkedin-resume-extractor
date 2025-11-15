@@ -269,7 +269,7 @@ const server = serve({
         }
       },
     },
-    "/api/my-table": {
+    "/api/ip-limiter-table": {
       async GET() {
         const { createClient } = await import("@supabase/supabase-js");
 
@@ -283,17 +283,17 @@ const server = serve({
 
         if (!url || !key) {
           return Response.json(
-            { error: "Supabase no configurado", debug: debugInfo },
+            { error: "Supabase no configurado" },
             { status: 500 }
           );
         }
 
         const table = "iplimiter";
-        const supabase = createClient(url, key, { auth: { persistSession: false } });
+        const supabase = createClient(url, key);
 
         const countTest = await supabase
           .from(table)
-          .select("*", { count: "exact", head: true });
+          .select("*");
 
         debugInfo.count = countTest.count;
         debugInfo.countError = countTest.error;
@@ -302,29 +302,25 @@ const server = serve({
           .from(table)
           .select("*");
 
-        if (error) {
-          return Response.json({ error: error.message, debug: debugInfo }, { status: 500 });
-        }
+        if (error) return Response.json({ error: error.message, debug: debugInfo }, { status: 500 });
 
-        return Response.json({ data, debug: debugInfo });
+
+        return Response.json({ data });
       },
 
       async POST(req) {
         const { createClient } = await import("@supabase/supabase-js");
 
         const url = process.env.SUPABASE_URL ?? "";
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY ?? "";
+        const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
         const debugInfo = {
           supabaseUrl: url,
           serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0,
-          anonKeyLength: process.env.SUPABASE_ANON_KEY?.length ?? 0,
         };
 
         console.log("URL:", url);
-        console.log("SERVICE ROLE LEN:", key?.length);
         console.log("SUPABASE_URL:", debugInfo.supabaseUrl);
         console.log("SERVICE_ROLE length:", debugInfo.serviceRoleLength);
-        console.log("ANON_KEY length:", debugInfo.anonKeyLength);
 
         if (!url || !key) {
           return Response.json(
@@ -333,8 +329,8 @@ const server = serve({
           );
         }
 
-        const table = "ip-limiter";
-        const body = await req.json(); // { ...campos de tu tabla... }
+        const table = "iplimiter";
+        const body = await req.json();
         const supabase = createClient(url, key, { auth: { persistSession: false } });
 
         const { data, error } = await supabase
@@ -351,9 +347,7 @@ const server = serve({
     }
   },
   development: {
-    // Enable browser hot reloading in development
     hmr: true,
-    // Echo console logs from the browser to the server
     console: true,
   },
 });

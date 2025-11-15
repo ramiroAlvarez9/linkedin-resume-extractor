@@ -69,7 +69,7 @@ export function App() {
         <button
           onClick={async () => {
             try {
-              const response = await fetch("/api/my-table");
+              const response = await fetch("/api/ip-limiter-table");
               const payload = await response.json();
               console.log("Supabase data:", payload);
             } catch (error) {
@@ -80,7 +80,7 @@ export function App() {
         >
           fetch supabase data
         </button>
-        <h1 className="p-8 text-3xl font-bold mb-8 text-center">LinkedIn Portfolio Data Extractor</h1>
+        <h1 className="p-8 text-3xl font-bold mb-8 text-center">Linkedin Portfolio Data Extractor</h1>
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
