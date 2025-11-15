@@ -61,3 +61,46 @@ body::before {
     animation: none !important;
   }
 }
+
+/* dialog { */
+/*   border: none; */
+/*   padding: 0; */
+/*   opacity: 0; */
+/*   transform: translateY(-12px); */
+/*   transition: opacity 0.2s ease, transform 0.2s ease; */
+/*   transition-behavior: allow-discrete; */
+/* } */
+
+/* dialog[open] { */
+/*   opacity: 1; */
+/*   transform: translateY(0); */
+/* } */
+
+dialog {
+  border: none;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.5s, background-color 0.5s,
+    display 0.5s allow-discrete;
+  transition-behavior: allow-discrete;
+}
+
+dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+}
+
+
+@starting-style {
+  dialog {
+    opacity: 0;
+  }
+}
+
+dialog[open] {
+  opacity: 1;
+}
+
+dialog:not([open]) {
+  opacity: 0;
+}
