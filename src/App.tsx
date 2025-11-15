@@ -198,7 +198,7 @@ export function App() {
         <div className="p-4 flex items-start justify-between gap-4">
           <h2 className="text-2xl font-semibold">How the extractor works</h2>
           <button
-            className="text-gray-400 hover:text-white"
+            className="cursor-pointer text-gray-400 hover:text-white"
             onClick={closeNativeModal}
             aria-label="Close native help dialog"
           >
@@ -213,7 +213,7 @@ export function App() {
         </ol>
         <div className="p-4 mt-6 flex justify-end">
           <button
-            className="rounded-full bg-emerald-500 px-6 py-2 font-semibold text-black hover:bg-emerald-400 transition-colors"
+            className="cursor-pointer rounded-full bg-emerald-500 px-6 py-2 font-semibold text-black hover:bg-emerald-400 transition-colors"
             onClick={closeNativeModal}
           >
             Got it
