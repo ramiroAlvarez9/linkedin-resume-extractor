@@ -6,8 +6,18 @@ import * as v from "valibot";
 import HarvardCV from "./components/harvardCv";
 import { downloadDocx } from "./utils/docxGenerator";
 
+const HELP_TEXT =
+  "Drop or select your LinkedIn PDF resume, let the extractor parse the structured data, and preview it in the Harvard CV layout before downloading the DOCX template.";
+const HELP_STEPS = [
+  "Export your LinkedIn profile as a PDF resume from LinkedIn.",
+  "Use the Upload tab to drag the file or click the drop zone and select it manually.",
+  "Wait for the server to parse the file, then inspect the parsed data or jump to the Harvard CV tab.",
+  "When you are ready, click the download button to save the Harvard CV-themed DOCX.",
+];
+
 export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nativeDialogRef = useRef<HTMLDialogElement>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "data" | "harvard-cv">("upload");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>("");
@@ -63,23 +73,29 @@ export function App() {
     }
   };
 
+  const openNativeModal = () => {
+    if (!nativeDialogRef.current?.open) {
+      nativeDialogRef.current?.showModal();
+    }
+  };
+
+  const closeNativeModal = () => {
+    if (nativeDialogRef.current?.open) {
+      nativeDialogRef.current.close();
+    }
+  };
+
   return (
     <div className="w-screen min-h-screen bg-gray-800 text-white p-6">
       <div className="max-w-4xl mx-auto">
-        <button
-          onClick={async () => {
-            try {
-              const response = await fetch("/api/ip-limiter-table");
-              const payload = await response.json();
-              console.log("Supabase data:", payload);
-            } catch (error) {
-              console.error("Error fetching Supabase data:", error);
-            }
-          }}
-          className="cursor-pointer border px-4 py-2 rounded mb-4"
-        >
-          fetch supabase data
-        </button>
+        <div className="flex flex-wrap justify-center gap-3 mb-4">
+          <button
+            onClick={openNativeModal}
+            className="cursor-pointer border border-emerald-500 text-emerald-300 px-4 py-2 rounded hover:bg-emerald-500/10 transition-colors"
+          >
+            How it works
+          </button>
+        </div>
         <h1 className="p-8 text-3xl font-bold mb-8 text-center">Linkedin Portfolio Data Extractor</h1>
         <div className="flex mb-8 border-b border-gray-700">
           <button
@@ -174,6 +190,36 @@ export function App() {
           </div>
         )}
       </div>
+      <dialog
+        ref={nativeDialogRef}
+        className=" m-auto w-3/4 md:w-full max-w-2xl rounded-3xl border border-gray-700 bg-gray-900 p-10 text-white shadow-2xl"
+        aria-modal="true"
+      >
+        <div className="p-4 flex items-start justify-between gap-4">
+          <h2 className="text-2xl font-semibold">How the extractor works</h2>
+          <button
+            className="cursor-pointer text-gray-400 hover:text-white"
+            onClick={closeNativeModal}
+            aria-label="Close native help dialog"
+          >
+            ✕
+          </button>
+        </div>
+        <p className="p-4 text-gray-300 mt-4">{HELP_TEXT}</p>
+        <ol className="p-4 mt-4 list-decimal list-inside space-y-3 text-gray-200">
+          {HELP_STEPS.map((step, index) => (
+            <li key={`native-${index}`}>{step}</li>
+          ))}
+        </ol>
+        <div className="p-4 mt-6 flex justify-end">
+          <button
+            className="cursor-pointer rounded-full bg-emerald-500 px-6 py-2 font-semibold text-black hover:bg-emerald-400 transition-colors"
+            onClick={closeNativeModal}
+          >
+            Got it
+          </button>
+        </div>
+      </dialog>
     </div >
   );
 }
