@@ -310,8 +310,6 @@ async function incrementTimesUsed(ip: string): Promise<void> {
 const server = serve({
   port: 3000,
   routes: {
-    "/*": homepage,
-
     "/api/upload": {
       async POST(req) {
 
@@ -387,7 +385,8 @@ const server = serve({
           return Response.json({ error: "Failed to post to ip-limiter-table", details: errorMessage }, { status: 500 });
         }
       },
-    }
+    },
+    "/*": homepage,
   },
   development: {
     hmr: true,
