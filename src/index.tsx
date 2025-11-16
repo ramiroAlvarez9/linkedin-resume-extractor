@@ -215,7 +215,6 @@ async function formatResumeData(data: string) {
 
       let cleanedText = text.trim();
 
-      // Remove markdown code blocks if present
       if (cleanedText.startsWith("```json")) {
         cleanedText = cleanedText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
       } else if (cleanedText.startsWith("```")) {
@@ -318,8 +317,6 @@ const server = serve({
 
         const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
         const timesUsed = await getTimesUsed(ip)
-
-        console.log(`${ip} uses the service ${timesUsed}`)
 
         if (timesUsed && timesUsed > 3) return Response.json({ error: "Too many request" }, { status: 429 });
 
