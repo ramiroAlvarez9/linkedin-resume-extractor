@@ -314,12 +314,17 @@ const server = serve({
       async POST(req) {
 
         const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-        const timesUsed = await getTimesUsed(ip)
+        const timesUsed = await getTimesUsed(ip);
 
-        if (timesUsed && timesUsed > 3) return Response.json({ error: "Too many request" }, { status: 429 });
+        if (timesUsed === null) {
+          return Response.json({ error: "Could not verify request limit" }, { status: 500 });
+        }
+
+        if (timesUsed >= 3) {
+          return Response.json({ error: "Too many requests" }, { status: 429 });
+        }
 
         try {
-          const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
           await incrementTimesUsed(ip);
 
           const formData = await req.formData();
