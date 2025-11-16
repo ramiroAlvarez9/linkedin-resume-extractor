@@ -2,7 +2,6 @@
   "builds": [
     {
       "src": "src/index.tsx",
-      "use": "@vercel/bun"
     }
   ],
   "routes": [
