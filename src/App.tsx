@@ -18,7 +18,9 @@ const HELP_STEPS = [
 export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nativeDialogRef = useRef<HTMLDialogElement>(null);
-  const [activeTab, setActiveTab] = useState<"upload" | "data" | "harvard-cv">("upload");
+  const [activeTab, setActiveTab] = useState<"upload" | "harvard-cv">(() =>
+    localStorage.getItem("parsedCv") ? "harvard-cv" : "upload",
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>("");
   const [cvData, setCvData] = useState<CV | null>(() => {
@@ -230,16 +232,15 @@ const saveCvData = async (
   response: Response,
   setCvData: Dispatch<StateUpdater<CV | null>>,
   setUploadStatus: Dispatch<StateUpdater<string>>,
-  setActiveTab: Dispatch<StateUpdater<"data" | "upload" | "harvard-cv">>,
+  setActiveTab: Dispatch<StateUpdater<"upload" | "harvard-cv">>,
 ) => {
   const payload = await response.json();
   if (response.ok) {
     localStorage.setItem("parsedCv", JSON.stringify(payload.data));
     setCvData(payload.data);
-    console.log("CV data saved to localStorage:", payload.data);
 
+    setActiveTab("upload")
     setUploadStatus("PDF processed successfully!");
-    setActiveTab("data");
   } else {
     setUploadStatus(payload.error || "Error processing PDF");
   }

@@ -235,6 +235,79 @@ async function formatResumeData(data: string) {
   }
 }
 
+async function getSupabaseClient() {
+  const { createClient } = await import("@supabase/supabase-js");
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!url || !key) {
+    throw new Error("Supabase not configured");
+  }
+
+  return createClient(url, key);
+}
+
+export async function getTimesUsed(ip: string): Promise<number | null> {
+  try {
+    const supabase = await getSupabaseClient();
+    const table = "iplimiter";
+
+    const { data, error } = await supabase.from(table).select("times_used").eq("ip", ip).single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return 0;
+      }
+      console.error("Error getting times used:", error);
+      return null;
+    }
+
+    return data ? data.times_used : 0;
+  } catch (error) {
+    console.error("Error in getTimesUsed:", error);
+    return null;
+  }
+}
+
+async function incrementTimesUsed(ip: string): Promise<void> {
+  try {
+    const supabase = await getSupabaseClient();
+    const table = "iplimiter";
+
+    const { data: existing, error: selectError } = await supabase
+      .from(table)
+      .select("id, times_used")
+      .eq("ip", ip)
+      .single();
+
+    if (selectError && selectError.code !== "PGRST116") {
+      console.error("Error selecting IP for increment:", selectError);
+      return;
+    }
+
+    if (existing) {
+      const newTimesUsed = existing.times_used + 1;
+      const { error: updateError } = await supabase
+        .from(table)
+        .update({ times_used: newTimesUsed })
+        .eq("id", existing.id);
+
+      updateError
+        ? console.error("Error updating times_used:", updateError)
+        : console.log(`IP ${ip} usage incremented to ${newTimesUsed}`);
+    } else {
+      const { error: insertError } = await supabase.from(table).insert({ ip: ip, times_used: 1 });
+
+      insertError
+        ? console.error("Error inserting new IP:", insertError)
+        : console.log(`IP ${ip} added with 1 use.`);
+    }
+  } catch (error) {
+    console.error("Error in incrementTimesUsed:", error);
+  }
+}
+
+
 const server = serve({
   port: 3000,
   routes: {
@@ -242,7 +315,18 @@ const server = serve({
 
     "/api/upload": {
       async POST(req) {
+
+        const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+        const timesUsed = await getTimesUsed(ip)
+
+        console.log(`${ip} uses the service ${timesUsed}`)
+
+        if (timesUsed && timesUsed > 3) return Response.json({ error: "Too many request" }, { status: 429 });
+
         try {
+          const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
+          await incrementTimesUsed(ip);
+
           const formData = await req.formData();
           const pdfFile = formData.get("pdf") as File;
           if (!pdfFile) {
@@ -271,78 +355,40 @@ const server = serve({
     },
     "/api/ip-limiter-table": {
       async GET() {
-        const { createClient } = await import("@supabase/supabase-js");
+        try {
+          const supabase = await getSupabaseClient();
+          const table = "iplimiter";
 
-        const url = process.env.SUPABASE_URL;
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+          const { data, error } = await supabase.from(table).select("*");
 
-        const debugInfo: Record<string, unknown> = {
-          supabaseUrl: url,
-          serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
-        };
+          if (error) {
+            return Response.json({ error: error.message }, { status: 500 });
+          }
 
-        if (!url || !key) {
-          return Response.json(
-            { error: "Supabase no configurado" },
-            { status: 500 }
-          );
+          return Response.json({ data });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+          return Response.json({ error: "Failed to get ip-limiter-table", details: errorMessage }, { status: 500 });
         }
-
-        const table = "iplimiter";
-        const supabase = createClient(url, key);
-
-        const countTest = await supabase
-          .from(table)
-          .select("*");
-
-        debugInfo.count = countTest.count;
-        debugInfo.countError = countTest.error;
-
-        const { data, error } = await supabase
-          .from(table)
-          .select("*");
-
-        if (error) return Response.json({ error: error.message, debug: debugInfo }, { status: 500 });
-
-
-        return Response.json({ data });
       },
 
       async POST(req) {
-        const { createClient } = await import("@supabase/supabase-js");
+        try {
+          const supabase = await getSupabaseClient();
+          const table = "iplimiter";
+          const body = await req.json();
 
-        const url = process.env.SUPABASE_URL ?? "";
-        const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-        const debugInfo = {
-          supabaseUrl: url,
-          serviceRoleLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length ?? 0,
-        };
+          const { data, error } = await supabase.from(table).insert(body).select();
 
-        console.log("URL:", url);
-        console.log("SUPABASE_URL:", debugInfo.supabaseUrl);
-        console.log("SERVICE_ROLE length:", debugInfo.serviceRoleLength);
+          if (error) {
+            return Response.json({ error: error.message }, { status: 500 });
+          }
 
-        if (!url || !key) {
-          return Response.json(
-            { error: "Supabase no configurado", debug: debugInfo },
-            { status: 500 }
-          );
+          return Response.json({ data });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+          return Response.json({ error: "Failed to post to ip-limiter-table", details: errorMessage }, { status: 500 });
         }
-
-        const table = "iplimiter";
-        const body = await req.json();
-        const supabase = createClient(url, key, { auth: { persistSession: false } });
-
-        const { data, error } = await supabase
-          .from(table)
-          .insert(body)
-          .select();
-
-        if (error) {
-          return Response.json({ error: error.message, debug: debugInfo }, { status: 500 });
-        }
-
-        return Response.json({ data, debug: debugInfo });
       },
     }
   },
