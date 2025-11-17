@@ -11,8 +11,7 @@ let supabase: SupabaseClient | null = null;
 function getSupabase(): SupabaseClient | null {
   if (supabase) return supabase;
   const url = process.env.SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   supabase = createClient(url, key, {
     auth: { persistSession: false },
@@ -34,10 +33,7 @@ function getClientIp(req: Request): string {
 }
 
 // Supabase table: rate_limit_requests (id uuid default gen_random_uuid(), ip text, route text, ts timestamptz default now())
-export async function enforceRateLimit(
-  req: Request,
-  opts: RateLimitOptions,
-) {
+export async function enforceRateLimit(req: Request, opts: RateLimitOptions) {
   const ip = getClientIp(req);
   const now = Date.now();
   const windowStart = new Date(now - opts.windowSeconds * 1000).toISOString();
@@ -93,7 +89,7 @@ export async function enforceRateLimit(
     // Still allow; logging can be added here if desired
   }
 
-  const remaining = Math.max(0, (opts.limit - 1) - (count ?? 0));
+  const remaining = Math.max(0, opts.limit - 1 - (count ?? 0));
   return {
     allowed: true,
     ip,
@@ -103,14 +99,10 @@ export async function enforceRateLimit(
   } as const;
 }
 
-export function rateLimitHeaders(
-  opts: RateLimitOptions,
-  result: Awaited<ReturnType<typeof enforceRateLimit>>,
-) {
+export function rateLimitHeaders(opts: RateLimitOptions, result: Awaited<ReturnType<typeof enforceRateLimit>>) {
   return {
     "X-RateLimit-Limit": String(opts.limit),
     "X-RateLimit-Remaining": String(result.remaining),
     "X-RateLimit-Reset": result.resetAt,
   } as Record<string, string>;
 }
-

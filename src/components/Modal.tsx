@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { type ReactNode } from "react";
 
 interface ModalComponentProps {
   id: string;
@@ -10,12 +10,7 @@ export default function ModalComponent({ id, title, children }: ModalComponentPr
   return (
     <div className="modal micromodal-slide" id={id} aria-hidden="true">
       <div className="modal__overlay" tabIndex={-1} data-micromodal-close>
-        <div
-          className="modal__container"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={`${id}-title`}
-        >
+        <div className="modal__container" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`}>
           <header className="modal__header">
             <h2 className="modal__title" id={`${id}-title`}>
               {title}
@@ -34,6 +29,6 @@ export default function ModalComponent({ id, title, children }: ModalComponentPr
           </footer>
         </div>
       </div>
-    </div >
+    </div>
   );
 }

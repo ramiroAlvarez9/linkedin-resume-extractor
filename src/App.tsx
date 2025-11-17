@@ -6,14 +6,13 @@ import * as v from "valibot";
 import HarvardCV from "./components/harvardCv";
 import { downloadDocx } from "./utils/docxGenerator";
 
-const HELP_TEXT =
-  "Drop or select your LinkedIn PDF resume, let the extractor parse the structured data, and preview it in the Harvard CV layout before downloading the DOCX template.";
-const HELP_STEPS = [
-  "Export your LinkedIn profile as a PDF resume from LinkedIn.",
-  "Use the Upload tab to drag the file or click the drop zone and select it manually.",
-  "Wait for the server to parse the file, then inspect the parsed data or jump to the Harvard CV tab.",
-  "When you are ready, click the download button to save the Harvard CV-themed DOCX.",
-];
+import "./index.css";
+import { useState, useRef, type StateUpdater, type Dispatch } from "preact/hooks";
+import type { CV } from "./schemas/cv";
+import { CVSchema } from "./schemas/cv";
+import * as v from "valibot";
+import HarvardCV from "./components/harvardCv";
+import { downloadDocx } from "./utils/docxGenerator";
 
 export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -32,6 +31,16 @@ export function App() {
       return v.parse(CVSchema, parsedCv);
     }
   });
+  const [modalTitle, setModalTitle] = useState("How the extractor works");
+  const [modalMessage, setModalMessage] = useState(
+    "Drop or select your LinkedIn PDF resume, let the extractor parse the structured data, and preview it in the Harvard CV layout before downloading the DOCX template.",
+  );
+  const [modalSteps, setModalSteps] = useState([
+    "Export your LinkedIn profile as a PDF resume from LinkedIn.",
+    "Use the Upload tab to drag the file or click the drop zone and select it manually.",
+    "Wait for the server to parse the file, then inspect the parsed data or jump to the Harvard CV tab.",
+    "When you are ready, click the download button to save the Harvard CV-themed DOCX.",
+  ]);
 
   const handleFileUpload = async (file: File) => {
     if (!file.type.includes("pdf")) {
@@ -49,7 +58,7 @@ export function App() {
         method: "POST",
         body: formData,
       });
-      saveCvData(response, setCvData, setUploadStatus, setActiveTab);
+      saveCvData(response, setCvData, setUploadStatus, setActiveTab, openNativeModal, closeNativeModal);
     } catch (error) {
       console.error(error);
       setUploadStatus("Upload failed");
@@ -75,7 +84,19 @@ export function App() {
     }
   };
 
-  const openNativeModal = () => {
+  const openNativeModal = (
+    title = "How the extractor works",
+    message = "Drop or select your LinkedIn PDF resume, let the extractor parse the structured data, and preview it in the Harvard CV layout before downloading the DOCX template.",
+    steps = [
+      "Export your LinkedIn profile as a PDF resume from LinkedIn.",
+      "Use the Upload tab to drag the file or click the drop zone and select it manually.",
+      "Wait for the server to parse the file, then inspect the parsed data or jump to the Harvard CV tab.",
+      "When you are ready, click the download button to save the Harvard CV-themed DOCX.",
+    ],
+  ) => {
+    setModalTitle(title);
+    setModalMessage(message);
+    setModalSteps(steps);
     if (!nativeDialogRef.current?.open) {
       nativeDialogRef.current?.showModal();
     }
@@ -92,7 +113,7 @@ export function App() {
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-wrap justify-center gap-3 mb-4">
           <button
-            onClick={openNativeModal}
+            onClick={() => openNativeModal()}
             className="cursor-pointer border border-emerald-500 text-emerald-300 px-4 py-2 rounded hover:bg-emerald-500/10 transition-colors"
           >
             How it works
@@ -102,17 +123,19 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
+              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${activeTab === "harvard-cv"
-              ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
-              : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${
+              activeTab === "harvard-cv"
+                ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
+            }`}
           >
             🎓 Harvard CV
           </button>
@@ -164,6 +187,19 @@ export function App() {
                 )}
               </div>
             )}
+            <footer className="mt-8 text-center text-gray-500">
+              <p>
+                100% Bug-Free ( Maybe) - Made by{" "}
+                <a
+                  href="https://github.com/ramiroAlvarez9"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-400 hover:underline"
+                >
+                  Ramiro Alvarez
+                </a>
+              </p>
+            </footer>
           </div>
         )}
 
@@ -198,7 +234,7 @@ export function App() {
         aria-modal="true"
       >
         <div className="p-4 flex items-start justify-between gap-4">
-          <h2 className="text-2xl font-semibold">How the extractor works</h2>
+          <h2 className="text-2xl font-semibold">{modalTitle}</h2>
           <button
             className="cursor-pointer text-gray-400 hover:text-white"
             onClick={closeNativeModal}
@@ -207,12 +243,14 @@ export function App() {
             ✕
           </button>
         </div>
-        <p className="p-4 text-gray-300 mt-4">{HELP_TEXT}</p>
-        <ol className="p-4 mt-4 list-decimal list-inside space-y-3 text-gray-200">
-          {HELP_STEPS.map((step, index) => (
-            <li key={`native-${index}`}>{step}</li>
-          ))}
-        </ol>
+        <p className="p-4 text-gray-300 mt-4">{modalMessage}</p>
+        {modalSteps.length > 0 && (
+          <ol className="p-4 mt-4 list-decimal list-inside space-y-3 text-gray-200">
+            {modalSteps.map((step, index) => (
+              <li key={`native-${index}`}>{step}</li>
+            ))}
+          </ol>
+        )}
         <div className="p-4 mt-6 flex justify-end">
           <button
             className="cursor-pointer rounded-full bg-emerald-500 px-6 py-2 font-semibold text-black hover:bg-emerald-400 transition-colors"
@@ -222,7 +260,7 @@ export function App() {
           </button>
         </div>
       </dialog>
-    </div >
+    </div>
   );
 }
 
@@ -233,14 +271,23 @@ const saveCvData = async (
   setCvData: Dispatch<StateUpdater<CV | null>>,
   setUploadStatus: Dispatch<StateUpdater<string>>,
   setActiveTab: Dispatch<StateUpdater<"upload" | "harvard-cv">>,
+  openModal: (title: string, message: string, steps?: string[]) => void,
+  closeModal: () => void,
 ) => {
   const payload = await response.json();
   if (response.ok) {
     localStorage.setItem("parsedCv", JSON.stringify(payload.data));
     setCvData(payload.data);
 
-    setActiveTab("upload")
+    setActiveTab("upload");
     setUploadStatus("PDF processed successfully!");
+  } else if (response.status === 429) {
+    openModal(
+      "Too Many Requests",
+      "You have made too many requests for this IP address. The limit will be reset in 24 hours.",
+      [],
+    );
+    setUploadStatus("Upload failed: Too many requests");
   } else {
     setUploadStatus(payload.error || "Error processing PDF");
   }

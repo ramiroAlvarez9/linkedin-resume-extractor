@@ -80,7 +80,9 @@ dialog {
   border: none;
   padding: 0;
   opacity: 0;
-  transition: opacity 0.5s, background-color 0.5s,
+  transition:
+    opacity 0.5s,
+    background-color 0.5s,
     display 0.5s allow-discrete;
   transition-behavior: allow-discrete;
 }
@@ -89,7 +91,6 @@ dialog::backdrop {
   background-color: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(2px);
 }
-
 
 @starting-style {
   dialog {

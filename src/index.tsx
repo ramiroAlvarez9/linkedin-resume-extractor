@@ -297,22 +297,18 @@ async function incrementTimesUsed(ip: string): Promise<void> {
     } else {
       const { error: insertError } = await supabase.from(table).insert({ ip: ip, times_used: 1 });
 
-      insertError
-        ? console.error("Error inserting new IP:", insertError)
-        : console.log(`IP ${ip} added with 1 use.`);
+      insertError ? console.error("Error inserting new IP:", insertError) : console.log(`IP ${ip} added with 1 use.`);
     }
   } catch (error) {
     console.error("Error in incrementTimesUsed:", error);
   }
 }
 
-
 const server = serve({
   port: 3000,
   routes: {
     "/api/upload": {
       async POST(req) {
-
         const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
         const timesUsed = await getTimesUsed(ip);
 
