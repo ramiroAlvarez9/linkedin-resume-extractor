@@ -6,14 +6,6 @@ import * as v from "valibot";
 import HarvardCV from "./components/harvardCv";
 import { downloadDocx } from "./utils/docxGenerator";
 
-import "./index.css";
-import { useState, useRef, type StateUpdater, type Dispatch } from "preact/hooks";
-import type { CV } from "./schemas/cv";
-import { CVSchema } from "./schemas/cv";
-import * as v from "valibot";
-import HarvardCV from "./components/harvardCv";
-import { downloadDocx } from "./utils/docxGenerator";
-
 export function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const nativeDialogRef = useRef<HTMLDialogElement>(null);
@@ -38,7 +30,7 @@ export function App() {
   const [modalSteps, setModalSteps] = useState([
     "Export your LinkedIn profile as a PDF resume from LinkedIn.",
     "Use the Upload tab to drag the file or click the drop zone and select it manually.",
-    "Wait for the server to parse the file, then inspect the parsed data or jump to the Harvard CV tab.",
+    "Wait for the server to parse the file, then jump to the Harvard CV tab.",
     "When you are ready, click the download button to save the Harvard CV-themed DOCX.",
   ]);
 
@@ -123,19 +115,17 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
-              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-            }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+              }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${
-              activeTab === "harvard-cv"
-                ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
-            }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${activeTab === "harvard-cv"
+              ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
+              }`}
           >
             🎓 Harvard CV
           </button>
