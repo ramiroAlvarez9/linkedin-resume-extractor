@@ -7,6 +7,12 @@ import { createDeepSeek } from "@ai-sdk/deepseek";
 import { CVSchema } from "./schemas/cv";
 import { nodeEventEmitter } from "./lib/event-emitter";
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
 function isLinkedInResume(text: string): boolean {
   const lowerText = text.toLowerCase();
   return lowerText.includes("linkedin.com/in/");
@@ -288,6 +294,9 @@ const server = serve({
   port: 3000,
   routes: {
     "/api/upload": {
+      OPTIONS() {
+        return new Response(null, { headers: corsHeaders });
+      },
       async POST(req) {
         nodeEventEmitter.emit("message", "Checking IP limit...");
         const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
@@ -295,12 +304,12 @@ const server = serve({
 
         if (timesUsed === null) {
           nodeEventEmitter.emit("message", "Could not verify request limit");
-          return Response.json({ error: "Could not verify request limit" }, { status: 500 });
+          return Response.json({ error: "Could not verify request limit" }, { status: 500, headers: corsHeaders });
         }
 
         if (timesUsed >= 3) {
           nodeEventEmitter.emit("message", "Rate limit exceeded");
-          return Response.json({ error: "Too many requests" }, { status: 429 });
+          return Response.json({ error: "Too many requests" }, { status: 429, headers: corsHeaders });
         }
 
         try {
@@ -311,7 +320,7 @@ const server = serve({
           const pdfFile = formData.get("pdf") as File;
           if (!pdfFile) {
             nodeEventEmitter.emit("message", "No PDF file provided");
-            return Response.json({ error: "No PDF file provided" }, { status: 400 });
+            return Response.json({ error: "No PDF file provided" }, { status: 400, headers: corsHeaders });
           }
 
           const pdfBuffer = await pdfFile.arrayBuffer();
@@ -319,7 +328,7 @@ const server = serve({
 
           if (!isLinkedInResume(text)) {
             nodeEventEmitter.emit("message", "Not a LinkedIn resume");
-            return Response.json({ error: "Not a LinkedIn resume" }, { status: 400 });
+            return Response.json({ error: "Not a LinkedIn resume" }, { status: 400, headers: corsHeaders });
           }
 
           nodeEventEmitter.emit("message", "Extracting and formatting data...");
@@ -331,11 +340,11 @@ const server = serve({
             success: true,
             data: formattedData,
             rawText: text,
-          });
+          }, { headers: corsHeaders });
         } catch (error) {
           console.error("PDF processing error:", error);
           nodeEventEmitter.emit("message", "Failed to process PDF");
-          return Response.json({ error: "Failed to process PDF" }, { status: 500 });
+          return Response.json({ error: "Failed to process PDF" }, { status: 500, headers: corsHeaders });
         }
       },
     },
@@ -359,14 +368,18 @@ const server = serve({
 
         return new Response(stream, {
           headers: {
+            ...corsHeaders,
             "Content-Type": "text/event-stream",
             "Cache-Control": "no-cache",
-            Connection: "keep-alive",
+            "Connection": "keep-alive",
           },
         });
       },
     },
     "/api/ip-limiter-table": {
+      OPTIONS() {
+        return new Response(null, { headers: corsHeaders });
+      },
       async GET() {
         try {
           const supabase = await getSupabaseClient();
@@ -375,13 +388,13 @@ const server = serve({
           const { data, error } = await supabase.from(table).select("*");
 
           if (error) {
-            return Response.json({ error: error.message }, { status: 500 });
+            return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
           }
 
-          return Response.json({ data });
+          return Response.json({ data }, { headers: corsHeaders });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-          return Response.json({ error: "Failed to get ip-limiter-table", details: errorMessage }, { status: 500 });
+          return Response.json({ error: "Failed to get ip-limiter-table", details: errorMessage }, { status: 500, headers: corsHeaders });
         }
       },
 
@@ -394,13 +407,13 @@ const server = serve({
           const { data, error } = await supabase.from(table).insert(body).select();
 
           if (error) {
-            return Response.json({ error: error.message }, { status: 500 });
+            return Response.json({ error: error.message }, { status: 500, headers: corsHeaders });
           }
 
-          return Response.json({ data });
+          return Response.json({ data }, { headers: corsHeaders });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
-          return Response.json({ error: "Failed to post to ip-limiter-table", details: errorMessage }, { status: 500 });
+          return Response.json({ error: "Failed to post to ip-limiter-table", details: errorMessage }, { status: 500, headers: corsHeaders });
         }
       },
     },
