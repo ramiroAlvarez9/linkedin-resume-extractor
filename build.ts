@@ -135,6 +135,19 @@ const result = await Bun.build({
   ...cliConfig,
 });
 
+const backendResult = await Bun.build({
+  entrypoints: ["src/index.tsx"],
+  outdir: `${outdir}/server`,
+  minify: true,
+  target: "bun",
+  sourcemap: "linked",
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production"),
+  },
+  ...cliConfig,
+});
+
+
 const end = performance.now();
 
 const outputTable = result.outputs.map((output) => ({
