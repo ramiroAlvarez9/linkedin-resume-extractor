@@ -125,23 +125,21 @@ export function App() {
             How it works
           </button>
         </div>
-        <h1 className="p-8 text-3xl font-bold mb-8 text-center">Linkedin Portfolio Data Extractor</h1>
+        <h1 className="p-8 text-3xl font-bold mb-8 text-center">LinkedIn PDF to Harvard CV</h1>
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
-              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-            }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+              }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${
-              activeTab === "harvard-cv"
-                ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
-            }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${activeTab === "harvard-cv"
+              ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
+              }`}
           >
             🎓 Harvard CV
           </button>
