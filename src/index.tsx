@@ -5,6 +5,7 @@ import * as v from "valibot";
 import { generateText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { CVSchema } from "./schemas/cv";
+import { nodeEventEmitter } from "./lib/event-emitter";
 
 let MONTHS = [
   "January",
@@ -211,7 +212,6 @@ async function formatResumeData(data: string) {
           JSON Response:`,
       });
 
-      console.log("response", text);
 
       let cleanedText = text.trim();
 
@@ -291,13 +291,11 @@ async function incrementTimesUsed(ip: string): Promise<void> {
         .update({ times_used: newTimesUsed })
         .eq("id", existing.id);
 
-      updateError
-        ? console.error("Error updating times_used:", updateError)
-        : console.log(`IP ${ip} usage incremented to ${newTimesUsed}`);
+      if (updateError) console.error("Error updating times_used:", updateError)
     } else {
       const { error: insertError } = await supabase.from(table).insert({ ip: ip, times_used: 1 });
 
-      insertError ? console.error("Error inserting new IP:", insertError) : console.log(`IP ${ip} added with 1 use.`);
+      if (insertError) console.error("Error inserting new IP:", insertError);
     }
   } catch (error) {
     console.error("Error in incrementTimesUsed:", error);
@@ -309,23 +307,28 @@ const server = serve({
   routes: {
     "/api/upload": {
       async POST(req) {
+        nodeEventEmitter.emit("message", "Checking IP limit...");
         const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
         const timesUsed = await getTimesUsed(ip);
 
         if (timesUsed === null) {
+          nodeEventEmitter.emit("message", "Could not verify request limit");
           return Response.json({ error: "Could not verify request limit" }, { status: 500 });
         }
 
         if (timesUsed >= 3) {
+          nodeEventEmitter.emit("message", "Rate limit exceeded");
           return Response.json({ error: "Too many requests" }, { status: 429 });
         }
 
         try {
           await incrementTimesUsed(ip);
+          nodeEventEmitter.emit("message", "Processing PDF file...");
 
           const formData = await req.formData();
           const pdfFile = formData.get("pdf") as File;
           if (!pdfFile) {
+            nodeEventEmitter.emit("message", "No PDF file provided");
             return Response.json({ error: "No PDF file provided" }, { status: 400 });
           }
 
@@ -333,10 +336,14 @@ const server = serve({
           const text = await pdfToText(new Uint8Array(pdfBuffer));
 
           if (!isLinkedInResume(text)) {
+            nodeEventEmitter.emit("message", "Not a LinkedIn resume");
             return Response.json({ error: "Not a LinkedIn resume" }, { status: 400 });
           }
 
+          nodeEventEmitter.emit("message", "Extracting and formatting data...");
           const formattedData = await formatResumeData(text);
+
+          nodeEventEmitter.emit("message", "Done!");
 
           return Response.json({
             success: true,
@@ -345,8 +352,36 @@ const server = serve({
           });
         } catch (error) {
           console.error("PDF processing error:", error);
+          nodeEventEmitter.emit("message", "Failed to process PDF");
           return Response.json({ error: "Failed to process PDF" }, { status: 500 });
         }
+      },
+    },
+    "/events": {
+      GET(req) {
+        const stream = new ReadableStream({
+          start(controller) {
+            const onMessage = (message: string) => {
+              controller.enqueue(`data: ${JSON.stringify(message)}\n\n`);
+            };
+
+            nodeEventEmitter.on("message", onMessage);
+            req.signal.addEventListener("abort", () => {
+              nodeEventEmitter.off("message", onMessage);
+              controller.close();
+            });
+            // Send a confirmation message when the connection is established
+            controller.enqueue(`data: ${JSON.stringify("Creating Harvard CV...")}\n\n`);
+          },
+        });
+
+        return new Response(stream, {
+          headers: {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache",
+            Connection: "keep-alive",
+          },
+        });
       },
     },
     "/api/ip-limiter-table": {

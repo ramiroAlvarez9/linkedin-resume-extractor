@@ -1,5 +1,5 @@
 import "./index.css";
-import { useState, useRef, type StateUpdater, type Dispatch } from "preact/hooks";
+import { useState, useRef, type StateUpdater, useEffect } from "preact/hooks";
 import type { CV } from "./schemas/cv";
 import { CVSchema } from "./schemas/cv";
 import * as v from "valibot";
@@ -14,6 +14,7 @@ export function App() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>("");
+  const [serverMessages, setServerMessages] = useState<string[]>([]);
   const [cvData, setCvData] = useState<CV | null>(() => {
     const storedCv = localStorage.getItem("parsedCv");
     if (!storedCv) {
@@ -34,6 +35,18 @@ export function App() {
     "When you are ready, click the download button to save the Harvard CV-themed DOCX.",
   ]);
 
+  useEffect(() => {
+    const eventSource = new EventSource("/events");
+    eventSource.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      setServerMessages((prevMessages) => [...prevMessages, message]);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, []);
+
   const handleFileUpload = async (file: File) => {
     if (!file.type.includes("pdf")) {
       setUploadStatus("Please select a PDF file");
@@ -42,6 +55,7 @@ export function App() {
 
     setIsLoading(true);
     setUploadStatus("");
+    setServerMessages([]);
 
     try {
       const formData = new FormData();
@@ -50,7 +64,7 @@ export function App() {
         method: "POST",
         body: formData,
       });
-      saveCvData(response, setCvData, setUploadStatus, setActiveTab, openNativeModal, closeNativeModal);
+      await saveCvData(response, setCvData, setUploadStatus, setActiveTab, openNativeModal);
     } catch (error) {
       console.error(error);
       setUploadStatus("Upload failed");
@@ -115,17 +129,19 @@ export function App() {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             onClick={() => setActiveTab("upload")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-colors ${
+              activeTab === "upload" ? "border-b-2 border-blue-500 text-blue-400" : "text-gray-400 hover:text-white"
+            }`}
           >
             Upload PDF
           </button>
           <button
             onClick={() => setActiveTab("harvard-cv")}
-            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${activeTab === "harvard-cv"
-              ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
-              : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
-              }`}
+            className={`cursor-pointer px-6 py-3 font-medium transition-all duration-200 rounded-t-lg ${
+              activeTab === "harvard-cv"
+                ? "border-b-2 border-emerald-500 text-emerald-400 bg-emerald-500/10 shadow-lg"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50 hover:shadow-md"
+            }`}
           >
             🎓 Harvard CV
           </button>
@@ -137,7 +153,9 @@ export function App() {
             {isLoading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-                <p className="text-gray-300">Processing...</p>
+                <p className="text-gray-300">
+                  {serverMessages.length > 0 ? serverMessages[serverMessages.length - 1] : "Processing..."}
+                </p>
               </div>
             ) : (
               <div>
@@ -262,14 +280,13 @@ const saveCvData = async (
   setUploadStatus: Dispatch<StateUpdater<string>>,
   setActiveTab: Dispatch<StateUpdater<"upload" | "harvard-cv">>,
   openModal: (title: string, message: string, steps?: string[]) => void,
-  closeModal: () => void,
 ) => {
   const payload = await response.json();
   if (response.ok) {
     localStorage.setItem("parsedCv", JSON.stringify(payload.data));
     setCvData(payload.data);
 
-    setActiveTab("upload");
+    setActiveTab("harvard-cv");
     setUploadStatus("PDF processed successfully!");
   } else if (response.status === 429) {
     openModal(

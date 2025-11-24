@@ -18,6 +18,7 @@
     "buffer": "^6.0.3",
     "bun-plugin-tailwind": "^0.0.15",
     "docx": "^9.5.1",
+    "events": "^3.3.0",
     "lucide-react": "^0.542.0",
     "pdf-ts": "^0.0.2",
     "preact": "^10",
