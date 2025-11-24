@@ -7,21 +7,6 @@ import { createDeepSeek } from "@ai-sdk/deepseek";
 import { CVSchema } from "./schemas/cv";
 import { nodeEventEmitter } from "./lib/event-emitter";
 
-let MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
 function isLinkedInResume(text: string): boolean {
   const lowerText = text.toLowerCase();
   return lowerText.includes("linkedin.com/in/");
@@ -48,9 +33,6 @@ async function formatResumeData(data: string) {
     apiKey: process.env.DEEPSEEK_API_KEY ?? "",
   });
 
-  const date = new Date();
-  const currentYear = date.getFullYear();
-  let currentMonth = MONTHS[date.getMonth()];
   const dataLanguage = getResumeLanguage(data);
   const cleanData = data.replace(/Page\s+\d+\s+of\s+\d+/gi, "").replace(/\n\s*\n\s*\n/g, "\n");
 
