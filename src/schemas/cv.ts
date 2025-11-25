@@ -1,10 +1,10 @@
 import * as v from "valibot";
 
 export const ContactSchema = v.object({
-  github: v.string(),
-  mobile: v.string(),
-  email: v.pipe(v.string(), v.email()),
-  linkedin: v.string(),
+  github: v.optional(v.string()),
+  mobile: v.optional(v.string()),
+  email: v.optional(v.union([v.literal(""), v.pipe(v.string(), v.email())])),
+  linkedin: v.optional(v.string()),
 });
 
 export const SkillSchema = v.object({
@@ -38,7 +38,7 @@ export const CVSchema = v.object({
   contact: ContactSchema,
   name: v.string(),
   title: v.string(),
-  location: v.string(),
+  location: v.optional(v.string()),
   summary: v.string(),
   skills: SkillSchema,
   experience: v.array(ExperienceSchema),
